@@ -8,6 +8,12 @@ plugins {
 }
 
 android {
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+}
+
+android {
     namespace = "com.example.a2048"
     compileSdk = 36
 
@@ -43,6 +49,27 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.androidx.junit.ktx)
+    // ===== Kaspresso =====
+
+    // ===== UI Automator =====
+    androidTestImplementation(libs.androidx.uiautomator)
+
+    // ===== AndroidX Test =====
+    androidTestImplementation(libs.androidx.rules)
+
+    // Compose UI test
+    androidTestImplementation(libs.ui.test.junit4)
+
+    // Нужно для testTag
+    debugImplementation(libs.ui.test.manifest)
+
+    // Hamcrest (ОБЯЗАТЕЛЬНО)
+    androidTestImplementation(libs.hamcrest)
+
+    androidTestImplementation(libs.kakaocup.compose)
+    androidTestImplementation(libs.bundles.kaspresso)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

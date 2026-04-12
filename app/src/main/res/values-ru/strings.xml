@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">2048</string>
+    <string name="points">Очки: %1$d</string>
+    <string name="restart">Заново</string>
+    <string name="change_size">Cменить размер</string>
+</resources>

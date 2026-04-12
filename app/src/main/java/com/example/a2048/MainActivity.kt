@@ -1,8 +1,13 @@
 package com.example.a2048
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -23,18 +28,31 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.a2048.ui.theme.TileColors.getBackgroundColor
-import com.example.a2048.ui.theme.TileColors.getTextColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(
+            statusBarStyle = androidx.activity.SystemBarStyle.auto(
+                lightScrim = Color.Transparent.toArgb(),
+                darkScrim = Color.Transparent.toArgb(),
+            )
+        )
+
         super.onCreate(savedInstanceState)
         setContent {
             Surface(
@@ -57,39 +75,33 @@ fun Game2048App(viewModel: GameLogic = viewModel()) {
 
     val coroutineScope = rememberCoroutineScope()
     var isSwipeLocked by remember { mutableStateOf(false) }
+
+    Image(
+        painter = painterResource(id = R.drawable.bg2),
+        contentDescription = null,
+        modifier = Modifier
+            .fillMaxSize()
+            .fillMaxWidth(),
+        contentScale = ContentScale.Crop
+    )
+
     if (gameOver) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        )
-        {
-            Text(
-                text = "Очки: $currentScore",
-                fontSize = 32.sp
-            )
-            Spacer(Modifier.padding(16.dp))
-            Button(onClick = {
-                viewModel.resetGame()
-            }) {
-                Text("restart")
-            }
-        }
+        GameOverScreen2(currentScore, viewModel)
     } else (
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {  // Детектор свайпов по всему экрану
+                    .testTag(TestTags.MAIN_SCREEN)
+                    .pointerInput(Unit) {
                         detectDragGestures()
                         { change, dragAmount ->
                             if (isSwipeLocked) return@detectDragGestures
                             change.consume()
                             val (dx, dy) = dragAmount
-                            val threshold = 8f  // Минимальное смещение для свайпа (в пикселях)
+                            val threshold = 8f
 
                             val direction = when {
-                                kotlin.math.abs(dx) > kotlin.math.abs(dy) -> {
+                                abs(dx) > abs(dy) -> {
                                     if (dx > threshold) Direction.RIGHT else if (dx < -threshold) Direction.LEFT else null
                                 }
 
@@ -100,15 +112,14 @@ fun Game2048App(viewModel: GameLogic = viewModel()) {
 
                             direction?.let {
                                 viewModel.move(it)
-                                isSwipeLocked = true  // Блокируем свайпы
+                                isSwipeLocked = true
                                 coroutineScope.launch {
-                                    delay(200L)  // Задержка 300 мс
-                                    isSwipeLocked = false  // Снимаем блокировку
+                                    delay(200L)
+                                    isSwipeLocked = false
                                 }
                             }
                         }
-                    }
-                    .padding(16.dp),
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -116,21 +127,22 @@ fun Game2048App(viewModel: GameLogic = viewModel()) {
                 Row {
                     Button(onClick = {
                         viewModel.resetGame()
-                    }) {
-                        Text("Restart")
+                    }, modifier = Modifier.testTag(TestTags.RESTART_BUTTON)) {
+                        Text(stringResource(R.string.restart))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = {
                         viewModel.changeSize()
                     }) {
-                        Text("сменить размер")
+                        Text(stringResource(R.string.change_size))
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Очки: $currentScore",
+                    text = stringResource(R.string.points).format(currentScore),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Matrix(viewModel)
@@ -144,6 +156,20 @@ fun Matrix(viewModel: GameLogic = viewModel()) {
     val highlightedCellsState = remember { viewModel.highlightedCellsState }
     val screenWidth = LocalConfiguration.current.screenWidthDp - 32
     val widthSize = screenWidth / viewModel.size
+    val numberToImageMap = mapOf(
+        2 to R.drawable.ejevika,
+        4 to R.drawable.arbuz,
+        8 to R.drawable.grape,
+        16 to R.drawable.arbuz,
+        32 to R.drawable.ejevika,
+        64 to R.drawable.arbuz,
+        128 to R.drawable.arbuz,
+        256 to R.drawable.arbuz,
+        512 to R.drawable.arbuz,
+        1024 to R.drawable.arbuz,
+        2048 to R.drawable.arbuz
+    )
+
     Column {
         for (rowIndex in matrix.indices) {
             val row = matrix[rowIndex]
@@ -155,9 +181,6 @@ fun Matrix(viewModel: GameLogic = viewModel()) {
                     Box(
                         modifier = Modifier
                             .size(widthSize.dp)
-                            .background(
-                                color = getBackgroundColor(cell)
-                            )
                             .border(
                                 width = if (isHighlighted) 4.dp else 0.1.dp,
                                 color = if (isHighlighted) Color.Yellow else Color.Gray
@@ -166,16 +189,59 @@ fun Matrix(viewModel: GameLogic = viewModel()) {
                         contentAlignment = Alignment.Center
                     ) {
                         if (cell != 0) {
+                            val imageRes = numberToImageMap[cell] ?: R.drawable.arbuz
+                            Image(
+                                painter = painterResource(imageRes),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                            )
                             Text(
                                 text = cell.toString(),
                                 fontSize = (widthSize / 4).sp,
                                 fontWeight = FontWeight.Bold,
-                                color = getTextColor(cell)
+                                color = Color.White
                             )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun GameOverScreen2(currentScore: Int, viewModel: GameLogic = viewModel()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f)),
+        contentAlignment = Alignment.Center
+    ) {
+        AndroidView(
+            factory = { context ->
+                LayoutInflater.from(context)
+                    .inflate(R.layout.game_over_screen_2, null)
+                    .apply {
+                        background =
+                            ContextCompat.getDrawable(
+                                context,
+                                R.drawable.window_bg
+                            )
+                    }
+            },
+            update = { view ->
+                val context = view.context
+                view.findViewById<TextView>(R.id.tvScore).text =
+                    context.getString(
+                        R.string.points,
+                        currentScore
+                    )
+                view.findViewById<Button>(R.id.btnRestart)
+                    .setOnClickListener {
+                        viewModel.resetGame()
+                    }
+            }
+        )
     }
 }

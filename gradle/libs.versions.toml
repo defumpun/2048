@@ -1,7 +1,10 @@
 [versions]
 agp = "8.12.3"
+hamcrest = "3.0"
 hiltAndroid = "2.57.2"
 hiltNavigationCompose = "1.3.0"
+kakaoCompose = "0.90"
+kakaocup-compose = "0.4.5"
 kotlin = "2.1.10"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -10,15 +13,23 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2024.09.00"
+rules = "1.7.0"
 ui = "1.9.4"
 foundation = "1.9.4"
 animation = "1.9.4"
 lifecycleViewmodelSavedstate = "2.9.4"
+uiautomator = "2.3.0"
+junitKtx = "1.3.0"
+tests-kaspresso = "1.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+kakaocup-compose = { module = "io.github.kakaocup:compose", version.ref = "kakaocup-compose" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+androidx-rules = { module = "androidx.test:rules", version.ref = "rules" }
+androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -34,12 +45,26 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+kakao-compose = { module = "io.github.kakaocup:kakao-compose", version.ref = "kakaoCompose" }
+tests-kaspresso-core = { group = "com.kaspersky.android-components", name = "kaspresso", version.ref = "tests-kaspresso" }
+tests-kaspresso-allure = { group = "com.kaspersky.android-components", name = "kaspresso-allure-support", version.ref = "tests-kaspresso" }
+tests-kaspresso-compose = { group = "com.kaspersky.android-components", name = "kaspresso-compose-support", version.ref = "tests-kaspresso" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 androidx-lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycleViewmodelSavedstate" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+[bundles]
+kaspresso = [
+    "tests-kaspresso-core",
+    "tests-kaspresso-allure",
+    "tests-kaspresso-compose"
+]

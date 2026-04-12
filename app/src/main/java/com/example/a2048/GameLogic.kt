@@ -19,6 +19,7 @@ class GameLogic : ViewModel() {
         resetGame()
     }
 
+    @SuppressLint("MutableCollectionMutableState")
     private val _matrix = mutableStateOf(createMatrix(size))
     val matrix: androidx.compose.runtime.State<MutableList<MutableList<Int>>> = _matrix
 
@@ -60,7 +61,7 @@ class GameLogic : ViewModel() {
         }
         if (zeros.isNotEmpty()) {
             val (i, j) = zeros[Random.Default.nextInt(zeros.size)]
-            _matrix.value[i][j] = if (Random.Default.nextDouble() < 0.9) 2 else 411
+            _matrix.value[i][j] = if (Random.Default.nextDouble() < 0.9) 2 else 4
             _highlightedCellsState.value = listOf(Pair(i, j))
         }
         checkGameOver()
