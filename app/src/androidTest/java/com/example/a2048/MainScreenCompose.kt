@@ -10,19 +10,18 @@ import io.github.kakaocup.kakao.common.utilities.getResourceString
 class MainScreenCompose(semanticsProvider: SemanticsNodeInteractionsProvider) :
     ComposeScreen<MainScreenCompose>(
         semanticsProvider = semanticsProvider,
-        viewBuilderAction = { hasTestTag(TestTags.MAIN_SCREEN) }
+        viewBuilderAction = {
+            hasTestTag(TestTags.MAIN_SCREEN)
+        }
     ) {
 
+    val restartButton: KNode = child { hasTestTag(TestTags.RESTART_BUTTON) }
+    val recordButton: KNode = child { hasTestTag(TestTags.RECORD_BUTTON) }
+    val changeSizeButton: KNode = child { hasTestTag(TestTags.CHANGE_SIZE_BUTTON) }
 
-    val restartButton: KNode = child {
-        hasTextId(R.string.restart)
+    fun assertDisplayed() = apply {
+        assertIsDisplayed()
     }
-
-    val changeSizeButton: KNode = child {
-        hasTextId(R.string.change_size)
-    }
-
-
 
 
 }

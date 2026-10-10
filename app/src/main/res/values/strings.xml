@@ -3,4 +3,6 @@
     <string name="points">Points: %1$d</string>
     <string name="restart">Restart</string>
     <string name="change_size">Change size</string>
+    <string name="record_text_button">Records</string>
+    <string name="record_text">Records</string>
 </resources>

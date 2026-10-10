@@ -13,3 +13,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local IDE settings and generated files
+/.idea/
+.kotlin/
+**/build/
+*.apk
+*.aab
+*.jks
+*.keystore
+keystore.properties

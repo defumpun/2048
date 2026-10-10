@@ -4,4 +4,6 @@
     <string name="points">Очки: %1$d</string>
     <string name="restart">Заново</string>
     <string name="change_size">Cменить размер</string>
+    <string name="record_text_button">Рекорды</string>
+    <string name="record_text">Рекорды</string>
 </resources>

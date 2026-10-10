@@ -10,24 +10,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -36,14 +26,20 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.a2048.presentation.game.GameViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -59,19 +55,45 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                Game2048App()
+                Navigator.AppRoot()
             }
         }
     }
 }
 
 @Composable
-fun Game2048App(viewModel: GameLogic = viewModel()) {
-    val matrix by viewModel.matrix
-    val gameOver = viewModel.gameOver.value
-    val currentScore by viewModel.score
-    val screenWidth = LocalConfiguration.current.screenWidthDp - 32
-    val widthSize = screenWidth / viewModel.size
+fun GameLogicWithViewModel(
+    viewModel: GameViewModel = hiltViewModel(),
+    onOpenRecords: () -> Unit,
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    Game2048App(
+        matrix = state.matrix,
+        gameOver = state.gameOver,
+        currentScore = state.score,
+        highlightedCells = state.highlightedCells,
+        size = state.size,
+        onRestart = viewModel::onRestart,
+        onChangeSize = viewModel::onChangeSize,
+        onMove = viewModel::onMove,
+        onOpenRecords = onOpenRecords,
+    )
+}
+
+
+@Composable
+fun Game2048App(
+    matrix: List<List<Int>>,
+    gameOver: Boolean,
+    currentScore: Int,
+    size: Int,
+    onRestart: () -> Unit,
+    onChangeSize: () -> Unit,
+    onMove: (Direction) -> Unit,
+    highlightedCells: List<Pair<Int, Int>>,
+    onOpenRecords: () -> Unit,
+) {
 
     val coroutineScope = rememberCoroutineScope()
     var isSwipeLocked by remember { mutableStateOf(false) }
@@ -86,76 +108,92 @@ fun Game2048App(viewModel: GameLogic = viewModel()) {
     )
 
     if (gameOver) {
-        GameOverScreen2(currentScore, viewModel)
-    } else (
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .testTag(TestTags.MAIN_SCREEN)
-                    .pointerInput(Unit) {
-                        detectDragGestures()
-                        { change, dragAmount ->
-                            if (isSwipeLocked) return@detectDragGestures
-                            change.consume()
-                            val (dx, dy) = dragAmount
-                            val threshold = 8f
+        GameOverScreen2(
+            currentScore = currentScore,
+            onRestart = onRestart,
+        )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag(TestTags.MAIN_SCREEN)
+                .pointerInput(Unit) {
+                    detectDragGestures()
+                    { change, dragAmount ->
+                        if (isSwipeLocked) return@detectDragGestures
+                        change.consume()
+                        val (dx, dy) = dragAmount
+                        val threshold = 8f
 
-                            val direction = when {
-                                abs(dx) > abs(dy) -> {
-                                    if (dx > threshold) Direction.RIGHT else if (dx < -threshold) Direction.LEFT else null
-                                }
-
-                                else -> {
-                                    if (dy > threshold) Direction.DOWN else if (dy < -threshold) Direction.UP else null
-                                }
+                        val direction = when {
+                            abs(dx) > abs(dy) -> {
+                                if (dx > threshold) Direction.RIGHT else if (dx < -threshold) Direction.LEFT else null
                             }
 
-                            direction?.let {
-                                viewModel.move(it)
-                                isSwipeLocked = true
-                                coroutineScope.launch {
-                                    delay(200L)
-                                    isSwipeLocked = false
-                                }
+                            else -> {
+                                if (dy > threshold) Direction.DOWN else if (dy < -threshold) Direction.UP else null
                             }
                         }
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row {
-                    Button(onClick = {
-                        viewModel.resetGame()
-                    }, modifier = Modifier.testTag(TestTags.RESTART_BUTTON)) {
-                        Text(stringResource(R.string.restart))
+                        direction?.let {
+                            onMove(it)
+                            isSwipeLocked = true
+                            coroutineScope.launch {
+                                delay(200L)
+                                isSwipeLocked = false
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = {
-                        viewModel.changeSize()
-                    }) {
-                        Text(stringResource(R.string.change_size))
-                    }
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row {
+                Button(onClick = {
+                    onRestart()
+                }, modifier = Modifier.testTag(TestTags.RESTART_BUTTON)) {
+                    Text(stringResource(R.string.restart))
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.points).format(currentScore),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                Matrix(viewModel)
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { onChangeSize() },
+                    modifier = Modifier.testTag(TestTags.CHANGE_SIZE_BUTTON)
+                ) {
+                    Text(stringResource(R.string.change_size))
+                }
+                Button(
+                    onClick = { onOpenRecords() },
+                    modifier = Modifier.testTag(TestTags.RECORD_BUTTON)
+                ) {
+                    Text(stringResource(R.string.record_text_button))
+                }
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.points).format(currentScore),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
+            MatrixContent(
+                matrix = matrix,
+                highlightedCells = highlightedCells,
+                size = size
+            )
+        }
+    }
 }
 
 @Composable
-fun Matrix(viewModel: GameLogic = viewModel()) {
-    val matrix by viewModel.matrix
-    val highlightedCellsState = remember { viewModel.highlightedCellsState }
+fun MatrixContent(
+    matrix: List<List<Int>>,
+    highlightedCells: List<Pair<Int, Int>>,
+    size: Int,
+) {
+    val highlightedCellsState = highlightedCells
     val screenWidth = LocalConfiguration.current.screenWidthDp - 32
-    val widthSize = screenWidth / viewModel.size
+    val widthSize = screenWidth / size
     val numberToImageMap = mapOf(
         2 to R.drawable.ejevika,
         4 to R.drawable.arbuz,
@@ -177,7 +215,7 @@ fun Matrix(viewModel: GameLogic = viewModel()) {
                 for (colIndex in row.indices) {
                     val cell = row[colIndex]
                     val isHighlighted =
-                        highlightedCellsState.value.contains(Pair(rowIndex, colIndex))
+                        highlightedCellsState.contains(Pair(rowIndex, colIndex))
                     Box(
                         modifier = Modifier
                             .size(widthSize.dp)
@@ -211,11 +249,15 @@ fun Matrix(viewModel: GameLogic = viewModel()) {
 }
 
 @Composable
-fun GameOverScreen2(currentScore: Int, viewModel: GameLogic = viewModel()) {
+fun GameOverScreen2(
+    currentScore: Int,
+    onRestart: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f)),
+            .background(Color.Black.copy(alpha = 0.5f))
+            .testTag(TestTags.GAME_OVER_SCREEN),
         contentAlignment = Alignment.Center
     ) {
         AndroidView(
@@ -239,9 +281,28 @@ fun GameOverScreen2(currentScore: Int, viewModel: GameLogic = viewModel()) {
                     )
                 view.findViewById<Button>(R.id.btnRestart)
                     .setOnClickListener {
-                        viewModel.resetGame()
+                        onRestart()
                     }
             }
+        )
+    }
+}
+
+@Composable
+fun RecordsScreen(
+    onBack: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable { onBack() }
+            .testTag(TestTags.RECORD_SCREEN),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.record_text),
+            modifier = Modifier.testTag(TestTags.RECORD_TITLE),
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }
