@@ -3,7 +3,23 @@
     <string name="app_name">2048</string>
     <string name="points">Очки: %1$d</string>
     <string name="restart">Заново</string>
-    <string name="change_size">Cменить размер</string>
+    <string name="change_size">Поле</string>
     <string name="record_text_button">Рекорды</string>
     <string name="record_text">Рекорды</string>
+    <string name="clear_records">Очистить рекорды</string>
+    <string name="empty_records">Пока нет рекордов</string>
+    <string name="records_back">Назад</string>
+    <string name="record_board">Поле: %1$d × %1$d</string>
+    <string name="confirm_yes">Да</string>
+    <string name="confirm_no">Нет</string>
+    <string name="confirm_clear_records">Вы уверены, что хотите очистить рекорды?</string>
+    <string name="clear_records_detail">Будут удалены рекорды для всех размеров поля.</string>
+    <string name="confirm_restart">Вы уверены, что хотите начать заново?</string>
+    <string name="restart_detail">Текущая игра будет сброшена. Рекорды сохранятся.</string>
+    <string name="board_size_tab">%1$d × %1$d</string>
+    <string name="confirm_change_size">Вы уверены, что хотите сменить размер поля?</string>
+    <string name="change_size_detail">Текущая игра будет сброшена. Начнётся игра на поле другого размера.</string>
+    <string name="game_finished">Игра завершена</string>
+    <string name="no_moves_left">Доступных ходов больше нет</string>
+    <string name="dismiss_result">Закрыть результат</string>
 </resources>

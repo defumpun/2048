@@ -19,5 +19,8 @@ class Converters {
 
     @TypeConverter
     fun toPairs(value: String): List<Pair<Int, Int>> =
-        gson.fromJson(value, object : TypeToken<List<Pair<Int, Int>>>() {}.type)
+        gson.fromJson<List<StoredPair>>(value, object : TypeToken<List<StoredPair>>() {}.type)
+            .map { it.first to it.second }
+
+    private data class StoredPair(val first: Int, val second: Int)
 }

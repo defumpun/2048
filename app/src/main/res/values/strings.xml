@@ -2,7 +2,23 @@
     <string name="app_name">2048</string>
     <string name="points">Points: %1$d</string>
     <string name="restart">Restart</string>
-    <string name="change_size">Change size</string>
+    <string name="change_size">Board</string>
     <string name="record_text_button">Records</string>
     <string name="record_text">Records</string>
+    <string name="clear_records">Clear records</string>
+    <string name="empty_records">No records yet</string>
+    <string name="records_back">Back</string>
+    <string name="record_board">Board: %1$d × %1$d</string>
+    <string name="confirm_yes">Yes</string>
+    <string name="confirm_no">No</string>
+    <string name="confirm_clear_records">Are you sure you want to clear records?</string>
+    <string name="clear_records_detail">Records for all board sizes will be deleted.</string>
+    <string name="confirm_restart">Are you sure you want to restart?</string>
+    <string name="restart_detail">Your current game will be reset. Records will be kept.</string>
+    <string name="board_size_tab">%1$d × %1$d</string>
+    <string name="confirm_change_size">Change board size?</string>
+    <string name="change_size_detail">Your current game will be reset and a new board size will be selected.</string>
+    <string name="game_finished">Game finished</string>
+    <string name="no_moves_left">No moves left</string>
+    <string name="dismiss_result">Close result</string>
 </resources>

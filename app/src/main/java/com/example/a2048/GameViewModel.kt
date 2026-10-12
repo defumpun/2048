@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
@@ -23,6 +25,7 @@ class GameViewModel @Inject constructor(
     private val addRecord: AddRecordUseCase,
     private val engine: GameEngine
 ) : ViewModel() {
+    private val actionsMutex = Mutex()
 
     val state = observeGameState()
         .filterNotNull()
@@ -34,36 +37,43 @@ class GameViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val existing = getGameState()
-            if (existing == null) {
-                saveGameState(engine.newGame(4))
+            actionsMutex.withLock {
+                if (getGameState() == null) {
+                    saveGameState(engine.newGame(4))
+                }
             }
         }
     }
 
     fun onMove(direction: Direction) {
         viewModelScope.launch {
-            val newState = engine.move(state.value, direction)
-            saveGameState(newState)
-
-            if (newState.gameOver) {
-                addRecord(newState.score, newState.size)
+            actionsMutex.withLock {
+                val previous = getGameState() ?: state.value
+                if (previous.gameOver) return@withLock
+                val newState = engine.move(previous, direction)
+                saveGameState(newState)
+                if (newState.gameOver) {
+                    addRecord(newState.score, newState.size)
+                }
             }
         }
     }
 
     fun onRestart() {
         viewModelScope.launch {
-            val newState = engine.newGame(state.value.size)
-            saveGameState(newState)
+            actionsMutex.withLock {
+                val current = getGameState() ?: state.value
+                saveGameState(engine.newGame(current.size))
+            }
         }
     }
 
     fun onChangeSize() {
         viewModelScope.launch {
-            val newSize = engine.nextSize(state.value.size)
-            val newState = engine.newGame(newSize)
-            saveGameState(newState)
+            actionsMutex.withLock {
+                val current = getGameState() ?: state.value
+                saveGameState(engine.newGame(engine.nextSize(current.size)))
+            }
         }
     }
 }

@@ -14,6 +14,8 @@ class RecordsRepositoryImpl(
     override fun observe(): Flow<List<GameRecord>> =
         dao.observeAll().map { list -> list.map { it.toDomain() } }
 
+    override suspend fun clear() = dao.clear()
+
     override suspend fun add(score: Int, size: Int) {
         dao.insert(
             RecordEntity(

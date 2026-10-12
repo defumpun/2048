@@ -7,4 +7,5 @@ import kotlinx.coroutines.flow.Flow
 interface RecordsRepository {
     fun observe(): Flow<List<GameRecord>>
     suspend fun add(score: Int, size: Int)
+    suspend fun clear()
 }
